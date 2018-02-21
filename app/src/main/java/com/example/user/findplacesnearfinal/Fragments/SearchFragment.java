@@ -48,6 +48,7 @@ public class SearchFragment extends Fragment {
                 Toast.makeText(getActivity(), "its works(:", Toast.LENGTH_SHORT).show();
 
                 /// do sum(:
+                //
 
 
             }
