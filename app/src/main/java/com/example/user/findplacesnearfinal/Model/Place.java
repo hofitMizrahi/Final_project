@@ -5,21 +5,23 @@ import java.util.List;
 public class Place{
 
     private Geometry geometry;
-    private String name;
+    private Location location;
     private String icon;
-    private List<Photo> photos;
+    private String name;
     private OpenHours opening_hours;
+    private List<Photo> photos;
     private double rating;
-    private List<String> types;
+    private String[] types;
 
     //for nearSearch - API
-    private String vicinity;
+//    private String vicinity;
 
     //for textSearch - API
     private String formatted_address;
 
+    //, String vicinity
 
-    public Place(Geometry geometry, String name, String icon, List<Photo> photos, OpenHours opening_hours, double rating, List<String> types, String vicinity, String formatted_address) {
+    public Place(Geometry geometry, String name, String icon, List<Photo> photos, OpenHours opening_hours, double rating, String[] types, String formatted_address) {
         this.geometry = geometry;
         this.name = name;
         this.icon = icon;
@@ -27,7 +29,7 @@ public class Place{
         this.opening_hours = opening_hours;
         this.rating = rating;
         this.types = types;
-        this.vicinity = vicinity;
+      //  this.vicinity = vicinity;
         this.formatted_address = formatted_address;
     }
 
@@ -59,11 +61,11 @@ public class Place{
         return rating;
     }
 
-    public List<String> getTypes() {
+    public String[] getTypes() {
         return types;
     }
 
-    public String getVicinity() {
-        return vicinity;
-    }
+ //   public String getVicinity() {
+  //      return vicinity;
+  //  }
 }
