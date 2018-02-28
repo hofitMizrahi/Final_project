@@ -1,83 +1,107 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:layoutDirection="ltr"
+    >
 
     <LinearLayout
-        android:background="#3c8aff"
-        android:orientation="vertical"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="259dp"
+        android:background="@drawable/fixdrink"
+        android:orientation="vertical">
 
-        <LinearLayout
-            android:paddingRight="8dp"
-            android:paddingLeft="8dp"
-            android:background="@drawable/searching_style"
+        <!--<Button-->
+        <!--android:layout_width="33dp"-->
+        <!--android:layout_height="31dp"-->
+        <!--android:layout_marginLeft="7dp"-->
+        <!--android:layout_marginTop="27dp"-->
+        <!--android:background="@drawable/location_green" />-->
+
+
+        <RelativeLayout
             android:id="@+id/linearLayout"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="8dp"
-            android:layout_marginStart="8dp"
-            android:layout_marginTop="8dp"
+            android:layout_height="40dp"
+            android:layout_marginTop="75dp"
             android:orientation="horizontal">
 
-            <EditText
 
-                android:id="@+id/editText2"
-                android:layout_width="312dp"
-                android:layout_marginLeft="8dp"
-                android:paddingTop="4dp"
-                android:layout_height="40dp"
-                android:layout_weight="1"
-                android:hint="enter place.."
-                android:inputType="textPersonName" />
-
-            <ImageView
-                android:id="@+id/image"
-                android:layout_width="25dp"
-                android:layout_height="25dp"
-                android:layout_marginLeft="2dp"
-                android:layout_marginRight="5dp"
-                android:layout_marginTop="5dp"
-                android:layout_weight="1"
-                android:background="@drawable/search_icon"
-                android:paddingRight="8dp"
-                android:paddingTop="10dp" />
-
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_marginEnd="8dp"
-            android:layout_marginStart="8dp"
-            android:layout_marginTop="10dp"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:paddingLeft="8dp"
-            android:paddingRight="8dp">
-
-            <Switch
-                android:id="@+id/switch3"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:gravity="center"
-                android:textSize="18sp" />
-
-            <SeekBar
-                android:id="@+id/seekBar3"
+            <RelativeLayout
                 android:layout_width="match_parent"
-                android:layout_height="39dp"
-                android:layout_gravity="center"
+                android:layout_height="match_parent"
+                android:layout_alignParentBottom="true"
+                android:layout_toLeftOf="@+id/linearLayout2"
+                android:layout_toStartOf="@+id/linearLayout2">
 
-                android:layout_marginEnd="8dp"
-                android:layout_marginStart="8dp"
-                android:paddingBottom="4dp" />
+                <Button
+                    android:id="@+id/locationChangeBtn"
+                    android:layout_width="38dp"
+                    android:layout_height="33dp"
+                    android:layout_alignParentBottom="true"
+                    android:layout_centerHorizontal="true"
+                    android:background="@drawable/not_location" />
+            </RelativeLayout>
 
-        </LinearLayout>
+            <LinearLayout
+                android:id="@+id/linearLayout2"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_alignParentTop="true"
+                android:layout_centerHorizontal="true"
+                android:background="@drawable/searching_style">
 
+                <EditText
+
+                    android:id="@+id/searchtext_ET"
+                    android:layout_width="200dp"
+                    android:layout_height="32dp"
+                    android:layout_marginLeft="8dp"
+                    android:layout_marginTop="8dp"
+                    android:backgroundTint="@color/Transparent"
+                    android:hint="enter place.."
+                    android:lines="1"
+                    android:paddingTop="2dp" />
+
+                <ImageView
+                    android:id="@+id/search_image"
+                    android:layout_width="33dp"
+                    android:layout_height="30dp"
+                    android:layout_marginLeft="2dp"
+                    android:layout_marginRight="10dp"
+                    android:layout_marginTop="3dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/glass"
+                    android:paddingRight="8dp"
+                    android:paddingTop="10dp" />
+
+            </LinearLayout>
+
+        </RelativeLayout>
+
+        <!--<Switch-->
+        <!--android:id="@+id/switch3"-->
+        <!--android:layout_width="wrap_content"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:layout_gravity="center"-->
+        <!--android:gravity="center"-->
+        <!--android:textSize="18sp" />-->
+
+        <!--app:ss_leftIcon="@drawable/ic_male"-->
+        <!--app:ss_rightIcon="@drawable/ic_female"-->
+
+        <SeekBar
+            android:id="@+id/seekBar"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_gravity="center"
+            android:visibility="invisible"
+            android:paddingBottom="4dp"
+            tools:layout_editor_absoluteX="4dp"
+            tools:layout_editor_absoluteY="50dp" />
 
     </LinearLayout>
 
@@ -85,6 +109,7 @@
 
 
     <LinearLayout
+        android:background="#65dfdfdf"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical">
@@ -94,9 +119,8 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_marginBottom="8dp"
-            android:paddingTop="8dp"
-            android:layout_marginEnd="8dp"
-            android:layout_marginStart="8dp" />
+            android:layout_marginTop="2dp"
+             />
 
     </LinearLayout>
 

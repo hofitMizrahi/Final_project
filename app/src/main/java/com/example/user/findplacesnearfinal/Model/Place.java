@@ -14,22 +14,27 @@ public class Place{
     private String[] types;
 
     //for nearSearch - API
-//    private String vicinity;
+    private String vicinity;
 
     //for textSearch - API
     private String formatted_address;
 
     //, String vicinity
 
-    public Place(Geometry geometry, String name, String icon, List<Photo> photos, OpenHours opening_hours, double rating, String[] types, String formatted_address) {
+
+    public Place(Geometry geometry, Location location, String icon,
+                 String name, OpenHours opening_hours,
+                 List<Photo> photos, double rating, String[] types
+                 , String formatted_address, String vicinity) {
         this.geometry = geometry;
-        this.name = name;
+        this.location = location;
         this.icon = icon;
-        this.photos = photos;
+        this.name = name;
         this.opening_hours = opening_hours;
+        this.photos = photos;
         this.rating = rating;
         this.types = types;
-      //  this.vicinity = vicinity;
+        this.vicinity = vicinity;
         this.formatted_address = formatted_address;
     }
 
@@ -65,7 +70,12 @@ public class Place{
         return types;
     }
 
- //   public String getVicinity() {
-  //      return vicinity;
-  //  }
+    public Location getLocation() {
+        return location;
+    }
+
+    public String getVicinity() {
+        return vicinity;
+    }
+
 }

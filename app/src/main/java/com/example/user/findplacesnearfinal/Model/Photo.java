@@ -7,4 +7,8 @@ package com.example.user.findplacesnearfinal.Model;
 public class Photo {
 
     private String photo_reference;
+
+    public String getPhoto_reference() {
+        return photo_reference;
+    }
 }
