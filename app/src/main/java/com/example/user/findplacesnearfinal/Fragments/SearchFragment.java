@@ -26,6 +26,7 @@ import com.example.user.findplacesnearfinal.R;
 import com.example.user.findplacesnearfinal.Service.GitHubService;
 import com.example.user.findplacesnearfinal.remote.RetrofitClient;
 
+import java.io.IOException;
 import java.util.ArrayList;
 
 import retrofit2.Call;
@@ -35,7 +36,7 @@ import retrofit2.Response;
 public class SearchFragment extends Fragment {
 
 
-    private String API_KEY = "AIzaSyC39IysBBweSQw_FJ8qiZIfiZ6pOfLB5DY";
+    private String API_KEY = "AIzaSyBwpg6a0MQuMKzVTHlwzCmhTksktUCqHf8";
 
     /**
      * @value -  false , search by text
@@ -137,8 +138,13 @@ public class SearchFragment extends Fragment {
                     //if user wont to search by text and don't wont to use GPS!!
                     case "text":
 
+                        Toast.makeText(getActivity(), "text", Toast.LENGTH_SHORT).show();
+
+
                         Call<allResults> repos = apiService.getTextSearchResults(textEnteredByTheUser, API_KEY);
+
                         repos.enqueue(new Callback<allResults>() {
+
                             @Override
                             public void onResponse(Call<allResults> call, Response<allResults> response) {
 
@@ -184,6 +190,8 @@ public class SearchFragment extends Fragment {
                         break;
 
                     case "nearBy":
+
+                        Toast.makeText(getActivity(), "nearBy", Toast.LENGTH_SHORT).show();
 
                         String latlonStringLocation = MainActivity.lastKnowLoc;
                         String radius = "500";

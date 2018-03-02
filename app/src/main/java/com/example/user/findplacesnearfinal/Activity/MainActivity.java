@@ -37,6 +37,10 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         setContentView(R.layout.activity_main);
 
         locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+        if ( !locationManager.isProviderEnabled( LocationManager.GPS_PROVIDER ) )
+            Toast.makeText(this, "GPS is disable!", Toast.LENGTH_LONG).show();
+        else
+            Toast.makeText(this, "GPS is Enable!", Toast.LENGTH_LONG).show();
 
         screenPositionOrder();
         checkLocationPermission();
@@ -117,14 +121,17 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         return true;
     }
 
+//---------------------------------------------------------------------------------------------------------------------------------
+
     /**
      * location Permission
      */
     public boolean checkLocationPermission() {
 
-        if (ContextCompat.checkSelfPermission(this,
-                Manifest.permission.ACCESS_FINE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED) {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED &&
+                ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
+                        != PackageManager.PERMISSION_GRANTED) {
 
             // No explanation needed, we can request the permission.
             ActivityCompat.requestPermissions(this,
@@ -135,7 +142,12 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 
         } else {
 
-            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5000, 0, this);
+            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 3000, 0, this);
+
+            Location loc =((LocationManager) getSystemService(LOCATION_SERVICE)).getLastKnownLocation(LocationManager.GPS_PROVIDER);
+            lastKnowLoc = loc.getLatitude() + "," + loc.getLongitude();
+            Log.i("LOC", "lat: " + loc.getLatitude() + " lon:" + loc.getLongitude());
+
             return true;
         }
     }
@@ -152,7 +164,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     {
 
-                        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5000, 0, this);
+                        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 3000, 0, this);
 
                     }
 
@@ -175,7 +187,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                 Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
 
-            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5000, 0, this);
+            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 3000, 0, this);
         }
     }
 
@@ -207,12 +219,12 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 
     @Override
     public void onProviderEnabled(String provider) {
-
+        Toast.makeText(this, "GPS is Enable!", Toast.LENGTH_LONG).show();
     }
 
     @Override
     public void onProviderDisabled(String provider) {
-
+        Toast.makeText(this, "GPS is disable!", Toast.LENGTH_LONG).show();
     }
 }
 
