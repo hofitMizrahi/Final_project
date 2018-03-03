@@ -2,9 +2,7 @@ package com.example.user.findplacesnearfinal.Activity;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
-import android.app.AlertDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.location.Location;
@@ -24,32 +22,20 @@ import com.example.user.findplacesnearfinal.Fragments.FragmentB;
 import com.example.user.findplacesnearfinal.R;
 import com.example.user.findplacesnearfinal.Fragments.SearchFragment;
 
-public class MainActivity extends AppCompatActivity implements LocationListener {
+public class MainActivity extends AppCompatActivity{
 
-    private final int REQUEST_CODE = 9;
-
-    LocationManager locationManager;
-    public static String lastKnowLoc;
+    public static boolean isPermissionToLocation = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
-        if ( !locationManager.isProviderEnabled( LocationManager.GPS_PROVIDER ) )
-            Toast.makeText(this, "GPS is disable!", Toast.LENGTH_LONG).show();
-        else
-            Toast.makeText(this, "GPS is Enable!", Toast.LENGTH_LONG).show();
-
         screenPositionOrder();
-        checkLocationPermission();
-
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolBar_id);
-        toolbar.setTitle("");
-        setSupportActionBar(toolbar);
+        setToolBar();
 
     }
+
 
     /**
      * method that Initializing the layouts by the device orientation and if its mobile or tablet.
@@ -122,109 +108,35 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     }
 
 //---------------------------------------------------------------------------------------------------------------------------------
+//
+//    @Override
+//    protected void onResume() {
+//        super.onResume();
+//        if (ContextCompat.checkSelfPermission(this,
+//                Manifest.permission.ACCESS_FINE_LOCATION)
+//                == PackageManager.PERMISSION_GRANTED) {
+//
+//            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 0, this);
+//        }
+//    }
+//
+//    @Override
+//    protected void onPause() {
+//        super.onPause();
+//        if (ContextCompat.checkSelfPermission(this,
+//                Manifest.permission.ACCESS_FINE_LOCATION)
+//                == PackageManager.PERMISSION_GRANTED) {
+//
+//            locationManager.removeUpdates(this);
+//        }
+//    }
 
-    /**
-     * location Permission
-     */
-    public boolean checkLocationPermission() {
 
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED &&
-                ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
-                        != PackageManager.PERMISSION_GRANTED) {
+    private void setToolBar() {
 
-            // No explanation needed, we can request the permission.
-            ActivityCompat.requestPermissions(this,
-                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
-                    REQUEST_CODE);
-
-            return false;
-
-        } else {
-
-            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 3000, 0, this);
-
-            Location loc =((LocationManager) getSystemService(LOCATION_SERVICE)).getLastKnownLocation(LocationManager.GPS_PROVIDER);
-            lastKnowLoc = loc.getLatitude() + "," + loc.getLongitude();
-            Log.i("LOC", "lat: " + loc.getLatitude() + " lon:" + loc.getLongitude());
-
-            return true;
-        }
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolBar_id);
+        toolbar.setTitle("");
+        setSupportActionBar(toolbar);
     }
 
-
-    @SuppressLint("MissingPermission")
-    @Override
-    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
-
-        switch (requestCode) {
-            case 9: {
-
-                // If request is cancelled, the result arrays are empty.
-                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    {
-
-                        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 3000, 0, this);
-
-                    }
-
-                } else {
-
-                    // permission denied, boo! Disable the
-                    // functionality that depends on this permission.
-                    Toast.makeText(this, "permission denied", Toast.LENGTH_SHORT).show();
-
-                }
-            }
-        }
-    }
-
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        if (ContextCompat.checkSelfPermission(this,
-                Manifest.permission.ACCESS_FINE_LOCATION)
-                == PackageManager.PERMISSION_GRANTED) {
-
-            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 3000, 0, this);
-        }
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        if (ContextCompat.checkSelfPermission(this,
-                Manifest.permission.ACCESS_FINE_LOCATION)
-                == PackageManager.PERMISSION_GRANTED) {
-
-            locationManager.removeUpdates(this);
-        }
-    }
-
-    @Override
-    public void onLocationChanged(Location location) {
-
-        lastKnowLoc = location.getLatitude() + "," + location.getLongitude();
-
-        //Will be called every time location gets updated
-        Log.i("LOC", "lat: " + location.getLatitude() + " lon:" + location.getLongitude());
-    }
-
-    @Override
-    public void onStatusChanged(String provider, int status, Bundle extras) {
-
-
-    }
-
-    @Override
-    public void onProviderEnabled(String provider) {
-        Toast.makeText(this, "GPS is Enable!", Toast.LENGTH_LONG).show();
-    }
-
-    @Override
-    public void onProviderDisabled(String provider) {
-        Toast.makeText(this, "GPS is disable!", Toast.LENGTH_LONG).show();
-    }
 }
-
