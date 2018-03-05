@@ -24,8 +24,6 @@ import com.example.user.findplacesnearfinal.Fragments.SearchFragment;
 
 public class MainActivity extends AppCompatActivity{
 
-    public static boolean isPermissionToLocation = false;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

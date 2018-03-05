@@ -6,5 +6,13 @@ package com.example.user.findplacesnearfinal.Model;
 
 public class Geometry {
 
-    private Location location;
+    private LocationLatLng location;
+
+    public Geometry(LocationLatLng location) {
+        this.location = location;
+    }
+
+    public LocationLatLng getLocation() {
+        return location;
+    }
 }

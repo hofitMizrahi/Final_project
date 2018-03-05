@@ -5,6 +5,7 @@ android {
     defaultConfig {
         applicationId "com.example.user.findplacesnearfinal"
         minSdkVersion 16
+        multiDexEnabled true
         targetSdkVersion 26
         versionCode 1
         versionName "1.0"
@@ -52,5 +53,8 @@ dependencies {
 
     //Sticky Switch library
     compile 'com.github.GwonHyeok:StickySwitch:0.0.15'
+
+    //google Play service
+    implementation 'com.google.android.gms:play-services:11.6.2'
 
 }

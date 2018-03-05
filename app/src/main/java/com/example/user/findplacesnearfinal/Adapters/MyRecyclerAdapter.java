@@ -8,24 +8,25 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
-
 import com.example.user.findplacesnearfinal.Model.Place;
 import com.example.user.findplacesnearfinal.R;
+import com.google.android.gms.maps.model.LatLng;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 
-public class MyRecyclerAdapter extends RecyclerView.Adapter <MyRecyclerAdapter.myViewHolder> {
+import static com.example.user.findplacesnearfinal.Fragments.SearchFragment.searchWithLocationAPI;
 
-    private String myAPIsManager = "text";
+public class MyRecyclerAdapter extends RecyclerView.Adapter <MyRecyclerAdapter.myViewHolder> {
 
     ArrayList<Place> placeArrayList;
     Context context;
+    LatLng latLng;
 
-    public MyRecyclerAdapter(ArrayList<Place> placeArrayList, Context context, String myApisManager) {
+    public MyRecyclerAdapter(ArrayList<Place> placeArrayList, Context context, LatLng latLng) {
         this.placeArrayList = placeArrayList;
         this.context = context;
-        this.myAPIsManager = myApisManager;
+        this.latLng = latLng;
     }
 
     @Override
@@ -52,10 +53,10 @@ public class MyRecyclerAdapter extends RecyclerView.Adapter <MyRecyclerAdapter.m
 
         View holderView;
 
-         public myViewHolder(View itemView) {
-         super(itemView);
+        public myViewHolder(View itemView) {
+            super(itemView);
 
-         this.holderView = itemView;
+            this.holderView = itemView;
         }
 
         @SuppressLint("ResourceType")
@@ -68,15 +69,12 @@ public class MyRecyclerAdapter extends RecyclerView.Adapter <MyRecyclerAdapter.m
             // address
             TextView address = holderView.findViewById(R.id.address_TV);
 
-            switch (myAPIsManager){
 
-                case "text":
-                    address.setText(place.getFormatted_address());
+            if(!searchWithLocationAPI){
+                address.setText(place.getFormatted_address());
 
-                    break;
-                case "nearBy":
-                    address.setText(place.getVicinity().toString());
-
+            }else {
+                address.setText(place.getVicinity().toString());
             }
 
             // open or close - boolean
@@ -114,6 +112,15 @@ public class MyRecyclerAdapter extends RecyclerView.Adapter <MyRecyclerAdapter.m
                         .centerCrop()
                         .into(imageView);
             }
+
+//            TextView meters = holderView.findViewById(R.id.KM_TV);
+//
+//            LatLng endP = new LatLng(place.getGeometry().getLocation().getLat(), place.getGeometry().getLocation().getLng());
+//
+//            CalculateDistance calculateDistance = new CalculateDistance();
+//            double distance = calculateDistance.getDistance(latLng, endP);
+//
+//            meters.setText(String.valueOf(distance));
         }
     }
 }

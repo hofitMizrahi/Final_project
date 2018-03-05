@@ -2,6 +2,8 @@ package com.example.user.findplacesnearfinal.Fragments;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
@@ -24,7 +26,6 @@ import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.Toast;
 
-import com.example.user.findplacesnearfinal.Activity.MainActivity;
 import com.example.user.findplacesnearfinal.Adapters.MyRecyclerAdapter;
 import com.example.user.findplacesnearfinal.Helper.SwipeController;
 import com.example.user.findplacesnearfinal.Model.Place;
@@ -32,8 +33,8 @@ import com.example.user.findplacesnearfinal.Model.allResults;
 import com.example.user.findplacesnearfinal.R;
 import com.example.user.findplacesnearfinal.Service.GitHubService;
 import com.example.user.findplacesnearfinal.remote.RetrofitClient;
+import com.google.android.gms.maps.model.LatLng;
 
-import java.io.IOException;
 import java.util.ArrayList;
 
 import retrofit2.Call;
@@ -41,24 +42,15 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 import static android.content.Context.LOCATION_SERVICE;
-import static com.example.user.findplacesnearfinal.Activity.MainActivity.isPermissionToLocation;
 
-public class SearchFragment extends Fragment implements LocationListener{
+public class SearchFragment extends Fragment implements LocationListener {
 
     private String API_KEY = "AIzaSyBwpg6a0MQuMKzVTHlwzCmhTksktUCqHf8";
     private final int REQUEST_CODE = 9;
 
-
-    LocationManager locationManager;
-    String lastKnowLoc;
-    /**
-     * @value -  false , search by text
-     * Call<allResults> repos = apiService.getTextSearchResults(textEnteredByTheUser, "AIzaSyDo6e7ZL0HqkwaKN-GwKgqZnW03FhJNivQ");
-     *
-     * @value - true , search by location
-     * Call<allResults> repos = apiService.getTextSearchResults(textEnteredByTheUser, "AIzaSyBwpg6a0MQuMKzVTHlwzCmhTksktUCqHf8");
-     */
-    private String  myApiManager = "text";
+    private LocationManager locationManager;
+    private String lastKnowLoc;
+    public static boolean searchWithLocationAPI = false;
 
     View myView;
     RecyclerView recyclerView;
@@ -66,16 +58,22 @@ public class SearchFragment extends Fragment implements LocationListener{
     Button locationBtn;
     SeekBar seekBar;
 
+    // Required empty public constructor
     public SearchFragment() {
-        // Required empty public constructor
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
-         //inflate the layout
+        //inflate the layout
         myView = inflater.inflate(R.layout.search_fragment, container, false);
+
+        //initialization the LocationManager
+        //check permission && GPS
+        locationManager = (LocationManager) getActivity().getSystemService(LOCATION_SERVICE);
+        checkLocationPermission();
+        isGpsEnable();
 
         //initialization the RecyclerView, the location button, seekBar
         recyclerView = myView.findViewById(R.id.myList_RV);
@@ -85,13 +83,18 @@ public class SearchFragment extends Fragment implements LocationListener{
 //-------------------------------------------------------------------------------------------------------------------
 
         /**
-         * initialization the SeekBar ,check if there are permissions for GPS
-         * if i have permission to the location, the Btn will be green
+         * initialization the SeekBar ,check if there are permissions to location and for GPS
+         * if i have permission to the location && GPS is on, the the gps image will be green in the beginning
          */
-        // if i have permission && GPS is on -- boolean
-        if(isPermissionToLocation) {
+        if (ContextCompat.checkSelfPermission(getActivity(),
+                Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED
+                && locationManager
+                .isProviderEnabled(LocationManager.GPS_PROVIDER)) {
 
-
+            seekBar.setVisibility(View.VISIBLE);
+            searchWithLocationAPI = true;
+            locationBtn.setBackgroundResource(R.drawable.location_green);
         }
 
         locationBtn.setOnClickListener(new View.OnClickListener() {
@@ -99,20 +102,25 @@ public class SearchFragment extends Fragment implements LocationListener{
             public void onClick(View v) {
 
                 // if gps image is ON (R.drawable.location_green) --> the locationButton change to OFF
-                if(locationBtn.getBackground().getConstantState() == getResources().getDrawable(R.drawable.location_green).getConstantState()){
+                if (locationBtn.getBackground().getConstantState() == getResources().getDrawable(R.drawable.location_green).getConstantState()) {
 
                     locationBtn.setBackgroundResource(R.drawable.not_location);
                     seekBar.setVisibility(View.INVISIBLE);
-                    myApiManager = "text";
+                    searchWithLocationAPI = false;
 
-                      // if gps image is off and the user wont it be ON && have permission && GPS --> the locationButton will change to ON
-                }else if(locationBtn.getBackground().getConstantState() == getResources().getDrawable(R.drawable.not_location).getConstantState() && isPermissionToLocation)
-                {
+                } else if (locationBtn.getBackground().getConstantState() == getResources().getDrawable(R.drawable.not_location).getConstantState()
+                        && ContextCompat.checkSelfPermission(getActivity(),
+                        Manifest.permission.ACCESS_FINE_LOCATION)
+                        == PackageManager.PERMISSION_GRANTED
+                        && locationManager
+                        .isProviderEnabled(LocationManager.GPS_PROVIDER)) {
                     locationBtn.setBackgroundResource(R.drawable.location_green);
                     seekBar.setVisibility(View.VISIBLE);
-                    myApiManager = "nearBy";
-                }else {
+                    searchWithLocationAPI = true;
+                } else {
 
+                    checkLocationPermission();
+                    isGpsEnable();
                 }
             }
         });
@@ -140,71 +148,22 @@ public class SearchFragment extends Fragment implements LocationListener{
 
                 GitHubService apiService = RetrofitClient.getClient().create(GitHubService.class);
 
-                switch (myApiManager){
+                String lastPoint = lastKnowLoc;
+                String[] output = lastPoint.split(",");
+                double lat = Double.valueOf(output[0]);
+                double lng = Double.valueOf(output[1]);
 
-                    //if user wont to search by text and don't wont to use GPS!!
-                    case "text":
+                final LatLng latLng = new LatLng(lat,lng);
 
-                        Toast.makeText(getActivity(), "text", Toast.LENGTH_SHORT).show();
+                //if user wont to search by text and don't wont to use GPS!!
+                if (!searchWithLocationAPI) {
 
-
-                        Call<allResults> repos = apiService.getTextSearchResults("pizza in jerusalem", API_KEY);
-
-                        repos.enqueue(new Callback<allResults>() {
-
-                            @Override
-                            public void onResponse(Call<allResults> call, Response<allResults> response) {
-
-                                Toast.makeText(getActivity(), "its works(:", Toast.LENGTH_SHORT).show();
-
-                                /// do sum(:
-
-                                if (response.isSuccessful()) {
-
-                                    ArrayList<Place> myData = new ArrayList<>();
-
-                                    allResults results = response.body();
-
-                                    myData.addAll(results.getResults());
-
-                                    if (response.isSuccessful() && myData.isEmpty()) {
-                                        Toast.makeText(getActivity(), "No Results - no data in the array", Toast.LENGTH_SHORT).show();//TOAST MESSAGE IF WE HAVE JSON WITH ZERO RESULTS
-                                    } else {
-
-                                        recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));//LinearLayoutManager, GridLayoutManager ,StaggeredGridLayoutManagerFor defining how single row of recycler view will look .  LinearLayoutManager shows items in horizontal or vertical scrolling list. Don't confuse with type of layout you use in xml
-                                        //setting txt adapter
-                                        RecyclerView.Adapter Adapter = new MyRecyclerAdapter(myData, getActivity(), "text");
-                                        recyclerView.setAdapter(Adapter);
-
-                                        SwipeController swipeController = new SwipeController();
-                                        ItemTouchHelper itemTouchhelper = new ItemTouchHelper(swipeController);
-                                        itemTouchhelper.attachToRecyclerView(recyclerView);
-                                        Adapter.notifyDataSetChanged();//refresh
-                                    }
-
-                                }
-
-                            }
+                    Toast.makeText(getActivity(), "text", Toast.LENGTH_SHORT).show();
 
 
-                            @Override
-                            public void onFailure(Call<allResults> call, Throwable t) {
+                    Call<allResults> repos = apiService.getTextSearchResults(textEnteredByTheUser, API_KEY);
 
-                                Toast.makeText(getActivity(), t.getMessage(), Toast.LENGTH_SHORT).show();
-                            }
-                        });
-
-                        break;
-
-                    case "nearBy":
-
-                        Toast.makeText(getActivity(), "nearBy", Toast.LENGTH_SHORT).show();
-
-                        String radius = "1000";
-
-                        repos = apiService.getNearbyResults(lastKnowLoc, radius, textEnteredByTheUser, API_KEY);
-
-                        repos.enqueue(new Callback<allResults>() {
+                    repos.enqueue(new Callback<allResults>() {
 
                         @Override
                         public void onResponse(Call<allResults> call, Response<allResults> response) {
@@ -227,7 +186,61 @@ public class SearchFragment extends Fragment implements LocationListener{
 
                                     recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));//LinearLayoutManager, GridLayoutManager ,StaggeredGridLayoutManagerFor defining how single row of recycler view will look .  LinearLayoutManager shows items in horizontal or vertical scrolling list. Don't confuse with type of layout you use in xml
                                     //setting txt adapter
-                                    RecyclerView.Adapter Adapter = new MyRecyclerAdapter(myData, getActivity(), "nearBy");
+                                    RecyclerView.Adapter Adapter = new MyRecyclerAdapter(myData, getActivity(), latLng);
+                                    recyclerView.setAdapter(Adapter);
+
+                                    SwipeController swipeController = new SwipeController();
+                                    ItemTouchHelper itemTouchhelper = new ItemTouchHelper(swipeController);
+                                    itemTouchhelper.attachToRecyclerView(recyclerView);
+                                    Adapter.notifyDataSetChanged();//refresh
+                                }
+
+                            }
+
+                        }
+
+
+                        @Override
+                        public void onFailure(Call<allResults> call, Throwable t) {
+
+                            Toast.makeText(getActivity(), t.getMessage(), Toast.LENGTH_SHORT).show();
+                        }
+                    });
+
+                } else {
+
+                    Toast.makeText(getActivity(), "nearBy", Toast.LENGTH_SHORT).show();
+
+                    String radius = "1000";
+                    Toast.makeText(getActivity(), lastKnowLoc, Toast.LENGTH_SHORT).show();
+
+
+                    Call<allResults> repos = apiService.getNearbyResults(lastKnowLoc, radius, textEnteredByTheUser, API_KEY);
+
+                    repos.enqueue(new Callback<allResults>() {
+
+                        @Override
+                        public void onResponse(Call<allResults> call, Response<allResults> response) {
+
+                            Toast.makeText(getActivity(), "its works(:", Toast.LENGTH_SHORT).show();
+
+                            /// do sum(:
+
+                            if (response.isSuccessful()) {
+
+                                ArrayList<Place> myData = new ArrayList<>();
+
+                                allResults results = response.body();
+
+                                myData.addAll(results.getResults());
+
+                                if (response.isSuccessful() && myData.isEmpty()) {
+                                    Toast.makeText(getActivity(), "No Results - no data in the array", Toast.LENGTH_SHORT).show();//TOAST MESSAGE IF WE HAVE JSON WITH ZERO RESULTS
+                                } else {
+
+                                    recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));//LinearLayoutManager, GridLayoutManager ,StaggeredGridLayoutManagerFor defining how single row of recycler view will look .  LinearLayoutManager shows items in horizontal or vertical scrolling list. Don't confuse with type of layout you use in xml
+                                    //setting txt adapter
+                                    RecyclerView.Adapter Adapter = new MyRecyclerAdapter(myData, getActivity(), latLng);
                                     recyclerView.setAdapter(Adapter);
 
                                     SwipeController swipeController = new SwipeController();
@@ -243,31 +256,16 @@ public class SearchFragment extends Fragment implements LocationListener{
                         @Override
                         public void onFailure(Call<allResults> call, Throwable t) {
 
-                            }
-                        });
-
-                    }
+                        }
+                    });
 
                 }
+
+            }
 
         });
 
 //--------------------------------------------------------------------------------------------------------------------
-
-        locationManager = (LocationManager) getActivity().getSystemService(LOCATION_SERVICE);
-        checkLocationPermission();
-
-        if(checkLocationPermission() == true){
-
-            seekBar.setVisibility(View.VISIBLE);
-            myApiManager = "nearBy";
-            locationBtn.setBackgroundResource(R.drawable.location_green);
-            getLocation();
-        }
-
-
-
-
         return myView;
     }
 
@@ -285,24 +283,11 @@ public class SearchFragment extends Fragment implements LocationListener{
                     new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
                     REQUEST_CODE);
 
-            isPermissionToLocation = false;
-
             return false;
 
-            //if i don't have GPS
-        }else if(!isGpsEnaled()){
-
-            // ask for gps and sent to it by intent
-            isPermissionToLocation = false;
-
-            return false;
-
-            //if i have permission && GPS is on -- get the current location
         } else {
 
-            isPermissionToLocation = true;
             getLocation();
-
             return true;
         }
     }
@@ -313,9 +298,19 @@ public class SearchFragment extends Fragment implements LocationListener{
         super.onResume();
         if (ContextCompat.checkSelfPermission(getActivity(),
                 Manifest.permission.ACCESS_FINE_LOCATION)
-                == PackageManager.PERMISSION_GRANTED) {
+                == PackageManager.PERMISSION_GRANTED
+                && locationManager
+                .isProviderEnabled(LocationManager.GPS_PROVIDER)) {
 
-            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 3000, 0, this);
+            getLocation();
+            locationBtn.setBackgroundResource(R.drawable.location_green);
+            seekBar.setVisibility(View.VISIBLE);
+            searchWithLocationAPI = true;
+
+        } else {
+            locationBtn.setBackgroundResource(R.drawable.not_location);
+            seekBar.setVisibility(View.INVISIBLE);
+            searchWithLocationAPI = false;
         }
     }
 
@@ -331,7 +326,7 @@ public class SearchFragment extends Fragment implements LocationListener{
     }
 
     //get user enter text to search
-    private String getUserText(){
+    private String getUserText() {
 
         searchTXT = myView.findViewById(R.id.searchtext_ET);
         return searchTXT.getText().toString();
@@ -340,11 +335,10 @@ public class SearchFragment extends Fragment implements LocationListener{
     @Override
     public void onLocationChanged(Location location) {
 
-        if (location==null) {
+        if (location == null) {
 
-        }else{
-            String lastKnowLoc = location.getLatitude() + "," + location.getLongitude();
-            //Will be called every time location gets updated
+        } else {
+            lastKnowLoc = location.getLatitude() + "," + location.getLongitude();
             Log.i("LOC", "lat: " + location.getLatitude() + " lon:" + location.getLongitude());
         }
     }
@@ -357,9 +351,15 @@ public class SearchFragment extends Fragment implements LocationListener{
     @Override
     public void onProviderEnabled(String provider) {
 
-        locationBtn.setBackgroundResource(R.drawable.location_green);
-        seekBar.setVisibility(View.VISIBLE);
-        myApiManager = "nearBy";
+        if (ActivityCompat.checkSelfPermission(getActivity(),
+                Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED) {
+
+            getLocation();
+            locationBtn.setBackgroundResource(R.drawable.location_green);
+            seekBar.setVisibility(View.VISIBLE);
+            searchWithLocationAPI = true;
+        }
     }
 
     @Override
@@ -367,34 +367,19 @@ public class SearchFragment extends Fragment implements LocationListener{
 
         locationBtn.setBackgroundResource(R.drawable.not_location);
         seekBar.setVisibility(View.INVISIBLE);
-        myApiManager = "text";
-    }
-
-
-    private boolean isGpsEnaled(){
-
-        if ( !locationManager.isProviderEnabled( LocationManager.GPS_PROVIDER ) ) {
-            Toast.makeText(getActivity(), "GPS is disable!", Toast.LENGTH_LONG).show();
-            return false;
-        }
-        Toast.makeText(getActivity(), "GPS is Enable!", Toast.LENGTH_LONG).show();
-        return true;
+        searchWithLocationAPI = false;
     }
 
     @SuppressLint("MissingPermission")
-    public void getLocation(){
-
+    private void getLocation() {
 
         locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 0, this);
-
         Location myLocation = ((LocationManager) getActivity().getSystemService(LOCATION_SERVICE)).getLastKnownLocation(LocationManager.GPS_PROVIDER);
 
-        if(myLocation == null){
-
+        if (myLocation == null) {
             Toast.makeText(getActivity(), "location not available :(", Toast.LENGTH_SHORT).show();
 
-        }else {
-
+        } else {
             Toast.makeText(getActivity(), "lat: " + myLocation.getLatitude() + " lon:" + myLocation.getLongitude(), Toast.LENGTH_SHORT).show();
             lastKnowLoc = myLocation.getLatitude() + "," + myLocation.getLongitude();
 
@@ -406,14 +391,13 @@ public class SearchFragment extends Fragment implements LocationListener{
     public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
 
         switch (requestCode) {
-            case 9: {
+
+            case REQUEST_CODE: {
 
                 // If request is cancelled, the result arrays are empty.
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     {
-
-                        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,1000, 0, this);
-
+                        getLocation();
                     }
 
                 } else {
@@ -426,4 +410,41 @@ public class SearchFragment extends Fragment implements LocationListener{
             }
         }
     }
+
+    // check if gps enable, if not show alert dialog and intent to open GPS
+    private boolean isGpsEnable() {
+
+        if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+            Toast.makeText(getActivity(), "GPS is disable!", Toast.LENGTH_LONG).show();
+
+            // ask for gps and sent to it by intent
+            AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(
+                    getActivity());
+            alertDialogBuilder
+                    .setMessage("GPS is disabled in your device. Enable it?")
+                    .setCancelable(false)
+                    .setPositiveButton("Enable GPS",
+                            new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog,
+                                                    int id) {
+                                    Intent callGPSSettingIntent = new Intent(
+                                            android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+                                    getActivity().startActivity(callGPSSettingIntent);
+                                    dialog.cancel();
+                                }
+                            });
+            alertDialogBuilder.setNegativeButton("Cancel",
+                    new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {
+                            dialog.cancel();
+                        }
+                    });
+            AlertDialog alert = alertDialogBuilder.create();
+            alert.show();
+            return false;
+        }
+        Toast.makeText(getActivity(), "GPS is Enable!", Toast.LENGTH_LONG).show();
+        return true;
+    }
+
 }

@@ -34,6 +34,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_alignParentBottom="true"
+                android:layout_marginLeft="5dp"
                 android:layout_toLeftOf="@+id/linearLayout2"
                 android:layout_toStartOf="@+id/linearLayout2">
 
